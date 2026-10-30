@@ -1,0 +1,19 @@
+{
+  "name": "Kream Ko — Stock & Sales",
+  "short_name": "Kream Ko",
+  "description": "Private inventory and counter sales tracker for Kream Ko ice cream stall",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF8F0",
+  "theme_color": "#FFF8F0",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+

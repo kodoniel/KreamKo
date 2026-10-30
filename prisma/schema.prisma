@@ -1,0 +1,251 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+enum PaymentMethod {
+  CASH
+  GCASH
+}
+
+enum StockChangeReason {
+  RESTOCK
+  DAMAGE
+  ADJUSTMENT
+  MANUAL_COUNT
+  END_OF_DAY_COUNT
+  WASTAGE
+}
+
+enum WastageReason {
+  SPOILED
+  SPILLED
+  DROPPED
+  EXPIRED
+  OTHER
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  name         String
+  passwordHash String
+  role         Role          @default(STAFF)
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  createdInvites   InviteToken[]
+  sales            Sale[]
+  stockLogs        StockLog[]
+  wastageLogs      WastageLog[]
+  eodStockCounts   EndOfDayStockCount[]
+  dailyCashCounts  DailyCashCount[]
+
+  @@map("users")
+}
+
+model InviteToken {
+  id          String    @id @default(uuid())
+  token       String    @unique
+  role        Role      @default(STAFF)
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdById String
+  createdBy   User      @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@map("invite_tokens")
+}
+
+model StockItem {
+  id              String         @id @default(uuid())
+  name            String
+  category        String         // e.g. "Ice cream powders", "Cones", "Float ingredients"
+  unitLabel       String         @default("pack") // pack, pcs, bottle, gallon, etc.
+  currentQuantity Float          @default(0)
+  lowStockLevel   Float          @default(2)
+  costPrice       Float?         // optional cost price for profit estimation
+  image           String?
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  stockLogs       StockLog[]
+  wastageLogs     WastageLog[]
+  countItems      EndOfDayStockCountItem[]
+
+  @@index([category])
+  @@index([isActive])
+  @@map("stock_items")
+}
+
+model StockLog {
+  id          String            @id @default(uuid())
+  stockItemId String
+  stockItem   StockItem         @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+  changeDelta Float             // positive for restock, negative for reduction
+  beforeQty   Float
+  afterQty    Float
+  reason      StockChangeReason
+  costPrice   Float?            // logged for restocks if provided
+  notes       String?
+  userId      String?
+  user        User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  clientLogId String?           @unique // for idempotent offline sync
+  createdAt   DateTime          @default(now())
+
+  @@index([stockItemId])
+  @@index([createdAt])
+  @@map("stock_logs")
+}
+
+model WastageLog {
+  id              String        @id @default(uuid())
+  stockItemId     String
+  stockItem       StockItem     @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+  quantity        Float
+  reason          WastageReason
+  notes           String?
+  recordedById    String?
+  recordedBy      User?         @relation(fields: [recordedById], references: [id], onDelete: SetNull)
+  clientWastageId String?       @unique // for idempotent offline sync
+  createdAt       DateTime      @default(now())
+
+  @@index([stockItemId])
+  @@index([createdAt])
+  @@map("wastage_logs")
+}
+
+model EndOfDayStockCount {
+  id            String                   @id @default(uuid())
+  countDate     String                   @unique // Manila Date "YYYY-MM-DD"
+  recordedById  String?
+  recordedBy    User?                    @relation(fields: [recordedById], references: [id], onDelete: SetNull)
+  notes         String?
+  clientCountId String?                  @unique // for idempotent offline sync
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+
+  items         EndOfDayStockCountItem[]
+
+  @@map("end_of_day_stock_counts")
+}
+
+model EndOfDayStockCountItem {
+  id            String             @id @default(uuid())
+  countId       String
+  count         EndOfDayStockCount @relation(fields: [countId], references: [id], onDelete: Cascade)
+  stockItemId   String
+  stockItem     StockItem          @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+  remainingQty  Float              // entered by staff
+  previousQty   Float              // baseline from previous count/beginning
+  restockedQty  Float              @default(0) // total restocks in this period
+  totalDecrease Float              @default(0) // previousQty + restockedQty - remainingQty
+  loggedWastage Float              @default(0) // known wastage
+  usedQty       Float              @default(0) // totalDecrease - loggedWastage
+
+  @@unique([countId, stockItemId])
+  @@map("end_of_day_stock_count_items")
+}
+
+model MenuProduct {
+  id        String        @id @default(uuid())
+  name      String
+  category  String        // "Ice Cream", "Sundae", "Floats", "French Fries", "Hotdog", "Add-ons", "Dips"
+  image     String?
+  isActive  Boolean       @default(true)
+  sortOrder Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  variants  MenuVariant[]
+
+  @@index([category])
+  @@index([isActive])
+  @@map("menu_products")
+}
+
+model MenuVariant {
+  id          String      @id @default(uuid())
+  productId   String
+  product     MenuProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name        String      // size/flavor/type e.g. "Vanilla", "Grande", "Venti"
+  price       Float
+  isAvailable Boolean     @default(true) // Daily toggle for flavors & availability
+  isActive    Boolean     @default(true)
+  sortOrder   Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([productId])
+  @@index([isAvailable])
+  @@map("menu_variants")
+}
+
+model Sale {
+  id            String        @id // client-generated UUID for offline sync
+  paymentMethod PaymentMethod @default(CASH)
+  totalAmount   Float
+  notes         String?
+  saleDate      String        // Manila date "YYYY-MM-DD"
+  recordedById  String?
+  recordedBy    User?         @relation(fields: [recordedById], references: [id], onDelete: SetNull)
+  createdAt     DateTime      @default(now())
+
+  items         SaleItem[]
+
+  @@index([saleDate])
+  @@index([paymentMethod])
+  @@index([createdAt])
+  @@map("sales")
+}
+
+model SaleItem {
+  id          String   @id @default(uuid())
+  saleId      String
+  sale        Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId   String?
+  variantId   String?
+  productName String
+  variantName String
+  quantity    Int
+  unitPrice   Float    // Price snapshot at time of sale
+  subtotal    Float
+  addOns      Json?    // Optional add-ons/dips array: [{ name, price, quantity }]
+
+  @@index([saleId])
+  @@map("sale_items")
+}
+
+model DailyCashCount {
+  id            String   @id @default(uuid())
+  countDate     String   @unique // Manila date "YYYY-MM-DD"
+  startingCash  Float    @default(0) // change fund
+  countedCash   Float    // physical cash counted in drawer
+  cashSales     Float    @default(0) // total cash sales for the day
+  gcashSales    Float    @default(0) // total GCash sales (recorded for reference, not in drawer)
+  expectedCash  Float    @default(0) // startingCash + cashSales
+  difference    Float    @default(0) // countedCash - expectedCash (negative = short, positive = over)
+  notes         String?
+  isReopened    Boolean  @default(false) // Admin can reopen
+  recordedById  String?
+  recordedBy    User?    @relation(fields: [recordedById], references: [id], onDelete: SetNull)
+  clientCountId String?  @unique // for idempotent offline sync
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([countDate])
+  @@map("daily_cash_counts")
+}
+

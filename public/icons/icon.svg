@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="128" fill="#FFF8F0"/>
+  <circle cx="256" cy="256" r="210" fill="#FFD6DE" opacity="0.6"/>
+  <!-- Cone -->
+  <polygon points="176,270 336,270 256,430" fill="#E5A85A"/>
+  <!-- Cone Waffle Pattern -->
+  <line x1="200" y1="290" x2="276" y2="400" stroke="#C88836" stroke-width="6"/>
+  <line x1="230" y1="280" x2="295" y2="370" stroke="#C88836" stroke-width="6"/>
+  <line x1="312" y1="290" x2="236" y2="400" stroke="#C88836" stroke-width="6"/>
+  <line x1="282" y1="280" x2="217" y2="370" stroke="#C88836" stroke-width="6"/>
+  <!-- Ice Cream Scoops -->
+  <!-- Bottom Scoop Mint -->
+  <circle cx="256" cy="245" r="95" fill="#A8E6CF"/>
+  <!-- Middle Scoop Strawberry Pink -->
+  <circle cx="256" cy="190" r="90" fill="#FFB5C2"/>
+  <!-- Top Swirl Cream -->
+  <circle cx="256" cy="140" r="70" fill="#FFECC4"/>
+  <!-- Cherry on top -->
+  <circle cx="256" cy="95" r="24" fill="#E8899A"/>
+  <path d="M256,75 Q280,45 305,50" stroke="#8E2800" stroke-width="5" fill="none"/>
+  <!-- Sprinkles -->
+  <rect x="220" y="160" width="16" height="6" rx="3" fill="#FFE0A3" transform="rotate(25 220 160)"/>
+  <rect x="270" y="150" width="16" height="6" rx="3" fill="#A8E6CF" transform="rotate(-30 270 150)"/>
+  <rect x="240" y="210" width="16" height="6" rx="3" fill="#FFD6DE" transform="rotate(45 240 210)"/>
+  <rect x="285" y="215" width="16" height="6" rx="3" fill="#FFE0A3" transform="rotate(-15 285 215)"/>
+</svg>
+

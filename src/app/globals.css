@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+/*
+ * Kream Ko Design Tokens
+ *
+ * Soft cream background with playful pastel accents
+ * matching the ice cream stall's brand.
+ */
+
+:root {
+  /* Brand colours */
+  --cream: #FFF8F0;
+  --pink: #FFB5C2;
+  --pink-light: #FFD6DE;
+  --pink-dark: #E8899A;
+  --mint: #A8E6CF;
+  --mint-light: #C8F0DE;
+  --mint-dark: #7BCBA8;
+  --mango: #FFE0A3;
+  --mango-light: #FFECC4;
+  --mango-dark: #F5C55A;
+
+  /* Semantic */
+  --background: var(--cream);
+  --foreground: #2D2D2D;
+  --muted: #6B7280;
+  --border: #E5E1DC;
+
+  /* Status */
+  --success: var(--mint);
+  --warning: var(--mango);
+  --danger: var(--pink);
+}
+
+@theme inline {
+  --color-cream: var(--cream);
+  --color-pink: var(--pink);
+  --color-pink-light: var(--pink-light);
+  --color-pink-dark: var(--pink-dark);
+  --color-mint: var(--mint);
+  --color-mint-light: var(--mint-light);
+  --color-mint-dark: var(--mint-dark);
+  --color-mango: var(--mango);
+  --color-mango-light: var(--mango-light);
+  --color-mango-dark: var(--mango-dark);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --font-display: var(--font-quicksand), "Quicksand", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Remove dark mode — this is a light-theme-only app */
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Smooth scroll everywhere */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better tap targets on mobile */
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+/* Hide scrollbar but keep scroll behaviour (for horizontal product lists) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
